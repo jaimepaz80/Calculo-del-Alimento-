@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Acuícola Predictiva v13.1 (por Jaime Paz)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+        :root {
+            --bg-color: #0c0a1f;
+            --card-color: #1a1832;
+            --text-color: #f0f0f0;
+            --primary-color: #8da0ff;
+            --secondary-color: #b0c4ff;
+            --accent-color: #ffc940;
+            
+            /* Colores para la ventana de Auth */
+            --auth-bg-color: #f0f2f5;
+            --auth-card-bg-color: #ffffff;
+            --auth-text-color: #333333;
+            --auth-primary-action-color: #1c8b78;
+            --auth-link-color: #007bff;
+        }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* --- ESTILOS DE AUTENTICACIÓN --- */
+        #auth-container {
+            width: 100%;
+            max-width: 400px;
+        }
+        .auth-card {
+            background-color: var(--auth-card-bg-color);
+            color: var(--auth-text-color);
+            padding: 30px 35px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .auth-card h2 {
+            margin: 0 0 5px 0;
+            font-size: 1.5em;
+            color: var(--auth-text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .auth-card .logo {
+            width: 32px;
+            height: 32px;
+        }
+        .auth-card p {
+            margin: 0 0 25px 0;
+            color: #666;
+        }
+        .auth-form-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        .auth-form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .auth-input-wrapper {
+            position: relative;
+        }
+        .auth-form-group input {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #888;
+        }
+        .auth-button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--auth-primary-action-color);
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .auth-links {
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        .auth-links a {
+            color: var(--auth-link-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- ESTILOS DE LA APP PRINCIPAL --- */
+        .app-card {
+            background-color: var(--card-color);
+            border-radius: 20px;
+            padding: 15px 25px 25px 25px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #logout-btn {
+            background-color: #c44d56;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .main-title { font-size: 1.1em; font-weight: 300; color: var(--secondary-color); margin: 0 0 15px 0; }
+        .tab-nav { display: flex; border-bottom: 1px solid rgba(141, 160, 255, 0.3); }
+        .tab-button { flex: 1; padding: 12px 10px; cursor: pointer; background-color: transparent; border: none; color: var(--secondary-color); font-size: 0.9em; font-weight: bold; transition: color 0.2s, border-bottom-color 0.2s; border-bottom: 3px solid transparent; }
+        .tab-button.active { color: var(--accent-color); border-bottom: 3px solid var(--accent-color); }
+        .tab-content { display: none; padding-top: 20px; }
+        .tab-content.active { display: block; }
+        h1 { font-size: 1.8em; margin: 0 0 10px 0; min-height: 30px; }
+        h3 { margin: 15px 0 10px 0; font-size: 0.9em; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px; font-weight: 400; }
+        .info-box { background-color: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px; margin-top: 20px; }
+        .result-value { font-size: 2.8em; font-weight: 700; color: var(--accent-color); margin: 0; }
+        .sub-result { font-size: 1em; color: var(--secondary-color); margin-top: 8px; font-style: italic; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--secondary-color); }
+        .form-group input, .form-group select { width: 100%; padding: 12px; box-sizing: border-box; border-radius: 8px; border: 1px solid var(--primary-color); background-color: var(--bg-color); color: var(--text-color); font-size: 1.1em; }
+        .main-calculate-btn { width: 100%; background-color: var(--accent-color); color: #1a1832; border: none; border-radius: 10px; padding: 15px 20px; font-size: 1.2em; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        .nav-controls { display: flex; justify-content: space-between; margin-top:20px; }
+        .nav-button { background-color: var(--primary-color); color: #1a1832; border: none; border-radius: 10px; padding: 12px 20px; font-size: 1em; font-weight: 700; cursor: pointer; width: 120px; }
+        .result-list { list-style: none; padding: 0; margin: 0; text-align: left; }
+        .result-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px 5px; border-bottom: 1px solid rgba(141, 160, 255, 0.1); }
+        .result-list li:last-child { border-bottom: none; }
+        .result-list .label { font-size: 0.9em; color: var(--secondary-color); }
+        .result-list .value { font-size: 1.1em; font-weight: bold; color: var(--text-color); }
+        .result-list .final-value { font-size: 1.2em; font-weight: bold; color: var(--accent-color); }
+        .schedule-table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+        .schedule-table th, .schedule-table td { padding: 8px; text-align: center; }
+        .schedule-table th { color: var(--primary-color); }
+        .schedule-table td { color: var(--secondary-color); font-weight: bold; }
+        .disclaimer, .author-info { margin-top: 25px; line-height: 1.4; opacity: 0.7; font-size: 0.75em; }
+        .author-info { font-size: 1.2em; opacity: 0.8; }
+        .author-info a { color: var(--primary-color); text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-container">
+        <div id="login-view" class="auth-card">
+            <h2>
+                <img src="https://i.imgur.com/ODhBE2r.png" alt="logo" class="logo">
+                Calculo del Alimento
+            </h2>
+            <p>Iniciar Sesión</p>
+            <form id="login-form">
+                <div class="auth-form-group">
+                    <label for="login-email">Correo</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="auth-form-group">
+                    <label for="login-password">Contraseña</label>
+                    <div class="auth-input-wrapper">
+                        <input type="password" id="login-password" required>
+                        <button type="button" class="password-toggle" data-target="login-password">👁️</button>
+                    </div>
+                </div>
+                <button type="submit" class="auth-button">Ingresar</button>
+            </form>
+            <div class="auth-links">
+                <a id="goto-reset">¿Olvidaste tu contraseña?</a>
+                <p style="margin-top: 10px;">¿No tienes cuenta? <a id="goto-register">Regístrate aquí</a></p>
+            </div>
+        </div>
+
+        <div id="register-view" class="auth-card" style="display:none;">
+            <h2>Crear Cuenta</h2>
+            <p>Completa los datos para registrarte</p>
+            <form id="register-form">
+                 <div class="auth-form-group">
+                    <label for="register-email">Correo</label>
+                    <input type="email" id="register-email" required>
+                </div>
+                <div class="auth-form-group">
+                    <label for="register-password">Contraseña</label>
+                    <div class="auth-input-wrapper">
+                        <input type="password" id="register-password" required>
+                         <button type="button" class="password-toggle" data-target="register-password">👁️</button>
+                    </div>
+                </div>
+                <button type="submit" class="auth-button">Registrarse</button>
+            </form>
+            <div class="auth-links">
+                <p>¿Ya tienes cuenta? <a id="goto-login-from-register">Inicia sesión</a></p>
+            </div>
+        </div>
+
+        <div id="reset-view" class="auth-card" style="display:none;">
+            <h2>Recuperar Contraseña</h2>
+            <p>Ingresa tu correo para enviarte un enlace de recuperación.</p>
+            <form id="reset-form">
+                 <div class="auth-form-group">
+                    <label for="reset-email">Correo</label>
+                    <input type="email" id="reset-email" required>
+                </div>
+                <button type="submit" class="auth-button">Enviar enlace</button>
+            </form>
+            <div class="auth-links">
+                <p><a id="goto-login-from-reset">Volver a inicio de sesión</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" style="display:none;">
+        <div class="app-card">
+            <h2 class="main-title" id="current-date-display">Cargando...</h2>
+
+            <div class="tab-nav">
+                <button id="tab-lunar" class="tab-button active">Ciclo Lunar</button>
+                <button id="tab-temp" class="tab-button">Por Temperatura</button>
+                <button id="tab-model" class="tab-button">Calculadora</button>
+            </div>
+
+            <div id="panel-lunar" class="tab-content active"></div>
+            <div id="panel-temp" class="tab-content"></div>
+            <div id="panel-model" class="tab-content">
+                <div class="info-box" style="padding:20px;">
+                    <h3>Datos de Entrada</h3>
+                    <div class="form-group"><label for="input-pond-id">Número de Piscina</label><input type="text" id="input-pond-id" placeholder="Ej: 14"></div>
+                    <div class="form-group"><label for="input-shrimp-count">Cantidad de Camarones</label><input type="number" id="input-shrimp-count" placeholder="Ej: 800000"></div>
+                    <div class="form-group"><label for="input-avg-weight">Peso Promedio (g)</label><input type="number" id="input-avg-weight" step="0.1" placeholder="Ej: 6.5"></div>
+                    <div class="form-group"><label for="input-fca">FCA (Factor de Conversión)</label><input type="number" id="input-fca" step="0.1" placeholder="Ej: 1.4"></div>
+                    <div class="form-group"><label for="input-temp-model">Temperatura del Agua (°C)</label><select id="input-temp-model"></select></div>
+                    <button id="run-model-btn" class="main-calculate-btn">Calcular Ración</button>
+                </div>
+                <div id="model-results-container" style="display:none;">
+                    <h3 id="result-title">Resultados</h3>
+                    <div class="info-box"><ul class="result-list"><li><span class="label">Cantidad de Camarones</span><span id="res-shrimp-total" class="value">--</span></li><li><span class="label">Camarones Comiendo (Lunar)</span><span id="res-shrimp-eating" class="value">--</span></li></ul></div>
+                    <div class="info-box"><ul class="result-list"><li><span class="label">Peso Actual</span><span id="res-weight-current" class="value">-- g</span></li><li><span class="label">Peso Mañana (Estimado)</span><span id="res-weight-tomorrow" class="value">-- g</span></li><li><span class="label">Ganancia de Peso</span><span id="res-weight-gained" class="value">-- g</span></li></ul></div>
+                    <div class="info-box"><ul class="result-list"><li><span class="label">Biomasa Total</span><span id="res-total-biomass" class="value">-- kg</span></li><li><span class="label">Biomasa (Camarones Comiendo)</span><span id="res-eating-biomass" class="value">-- kg</span></li></ul></div>
+                    <h3>Análisis de Escenarios de Alimentación</h3>
+                    <div class="info-box"><ul class="result-list"><li><span class="label">Ración Óptima (100% Lunar, 29°C)</span><span id="res-optimal-feed" class="value">-- kg</span></li><li><span class="label">Ración con Factor Lunar (a 29°C)</span><span id="res-lunar-feed" class="value">-- kg</span></li><li><span class="label">Ración con Temp. Real (100% Lunar)</span><span id="res-temp-feed" class="value">-- kg</span></li><hr><li><span class="label">Ración Final (Lunar y Temp. Real)</span><span id="res-final-feed" class="final-value">-- kg</span></li></ul></div>
+                    <h3>Horario de Raciones (Ración Final)</h3>
+                    <div class="info-box"><table class="schedule-table"><thead><tr><th>Hora</th><th>Porcentaje</th><th>Kilos</th></tr></thead><tbody id="schedule-table-body"></tbody></table></div>
+                    <div class="author-info" style="font-size:1em; margin-top:20px;">App por: Jaime Ulises Paz Lopez<br><a href="https://wa.me/584121043327" target="_blank">Contactar por WhatsApp</a></div>
+                </div>
+            </div>
+
+            <p class="disclaimer">Los porcentajes son estimaciones para guía de manejo y deben ser complementados con observaciones en la granja.</p>
+            <div class="author-info">App por: Jaime Ulises Paz Lopez<br><a href="https://wa.me/584121043327" target="_blank">Contactar por WhatsApp</a></div>
+            <button id="logout-btn">Cerrar Sesión</button>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const allTabs = document.querySelectorAll('.tab-button');
+        const allPanels = document.querySelectorAll('.tab-content');
+        const dateDisplay = document.getElementById('current-date-display');
+        const panelLunar = document.getElementById('panel-lunar');
+        const panelTemp = document.getElementById('panel-temp');
+        
+        let currentDate = new Date();
+        const shrimpData = {"Luna Nueva":{stage:"Ecdisis / Postmuda Temprana",isRange:!0,feedValue:.2},"Creciente Iluminante":{stage:"Postmuda -> Intermuda",isRange:!1,startDay:1.85,endDay:5.53,startFeed:.4,endFeed:1},"Cuarto Creciente":{stage:"Intermuda",isRange:!0,feedValue:1},"Gibosa Creciente":{stage:"Intermuda -> Premuda",isRange:!1,startDay:9.22,endDay:12.91,startFeed:1,endFeed:.6},"Luna Llena":{stage:"Ecdisis / Postmuda Temprana",isRange:!0,feedValue:.2},"Gibosa Menguante":{stage:"Postmuda -> Intermuda",isRange:!1,startDay:16.61,endDay:20.3,startFeed:.4,endFeed:1},"Cuarto Menguante":{stage:"Intermuda",isRange:!0,feedValue:1},"Menguante Iluminante":{stage:"Intermuda -> Premuda",isRange:!1,startDay:23.99,endDay:27.68,startFeed:1,endFeed:.6}};
+        const tempData = [{temp:20,factor:.25},{temp:23,factor:.5},{temp:26,factor:.75},{temp:29,factor:1},{temp:32,factor:.9},{temp:35,factor:.8}];
+        const tgcModelParams = {stanza1:{b_minus_1:.416,cn:.151},stanza2:{b_minus_1:.952,cn:.807}};
+        const scheduleData = [{time:"12:00 PM",percent:.34},{time:"2:00 PM",percent:.27},{time:"4:00 PM",percent:.15},{time:"6:00 PM",percent:.14},{time:"8:00 PM",percent:.1}];
+        const EPOCH=new Date("2000-01-06T18:14:00Z"),LUNAR_MONTH=29.530588853;
+
+        panelLunar.innerHTML=`<h1 id="lunar-phase-name">Fase Lunar</h1><p id="lunar-illumination"></p><div class="info-box"><h3>Camarones Comiendo (Estimado)</h3><p id="lunar-feeding-percentage" class="result-value">--%</p><p id="lunar-molt-stage" class="sub-result">Estadio de Muda</p></div><div class="nav-controls"><button id="prev-day" class="nav-button">&lt; Día Anterior</button><button id="next-day" class="nav-button">Día Siguiente &gt;</button></div>`;
+        panelTemp.innerHTML=`<div class="info-box"><h3>Ajuste de Alimentación</h3><select id="temp-select-consult"></select><p id="temp-result-consult" style="margin-top:15px; min-height:45px;"></p></div>`;
+
+        const lunarPhaseName=document.getElementById("lunar-phase-name"),lunarIllumination=document.getElementById("lunar-illumination"),lunarFeedingPercentage=document.getElementById("lunar-feeding-percentage"),lunarMoltStage=document.getElementById("lunar-molt-stage"),prevDayBtn=document.getElementById("prev-day"),nextDayBtn=document.getElementById("next-day"),tempSelectConsult=document.getElementById("temp-select-consult"),tempResultConsult=document.getElementById("temp-result-consult"),inputPondId=document.getElementById("input-pond-id"),inputShrimpCount=document.getElementById("input-shrimp-count"),inputAvgWeight=document.getElementById("input-avg-weight"),inputFCA=document.getElementById("input-fca"),inputTempModel=document.getElementById("input-temp-model"),runModelBtn=document.getElementById("run-model-btn"),modelResultsContainer=document.getElementById("model-results-container"),resultTitle=document.getElementById("result-title"),resTotalBiomass=document.getElementById("res-total-biomass"),resEatingBiomass=document.getElementById("res-eating-biomass"),resWeightGain=document.getElementById("res-weight-gain"),resOptimalFeed=document.getElementById("res-optimal-feed"),resLunarFeed=document.getElementById("res-lunar-feed"),resTempFeed=document.getElementById("res-temp-feed"),resFinalFeed=document.getElementById("res-final-feed"),scheduleTableBody=document.getElementById("schedule-table-body"),resShrimpTotal=document.getElementById("res-shrimp-total"),resShrimpEating=document.getElementById("res-shrimp-eating"),resWeightCurrent=document.getElementById("res-weight-current"),resWeightTomorrow=document.getElementById("res-weight-tomorrow"),resWeightGained=document.getElementById("res-weight-gained");
+
+        allTabs.forEach(t=>{t.addEventListener("click",e=>{allTabs.forEach(t=>t.classList.remove("active")),allPanels.forEach(p=>p.classList.remove("active")),document.getElementById(e.target.id.replace("tab-","panel-")).classList.add("active"),e.target.classList.add("active")})});
+        const getLunarAge=t=>(t.getTime()-EPOCH.getTime())/864e5%LUNAR_MONTH;
+        function calculateTempFactor(t){let e;if(t<=tempData[0].temp)e=tempData[0].factor;else if(t>=tempData[tempData.length-1].temp)e=tempData[tempData.length-1].factor;else{let a=tempData.findLast(e=>e.temp<=t),n=tempData.find(e=>e.temp>=t);const l=n.temp-a.temp;if(0===l)return a.factor;const s=n.factor-a.factor;e=a.factor+(t-a.temp)*s/l}return e}
+        function getLunarData(t){let e=getLunarAge(t),a;a=e<1.85||e>=27.68?"Luna Nueva":e<5.53?"Creciente Iluminante":e<9.22?"Cuarto Creciente":e<12.91?"Gibosa Creciente":e<16.61?"Luna Llena":e<20.3?"Gibosa Menguante":e<23.99?"Cuarto Menguante":"Menguante Iluminante";const n=shrimpData[a];let l=n.isRange?n.feedValue:n.startFeed+(n.endFeed-n.startFeed)*(e-n.startDay)/(n.endDay-n.startDay);const s=.5*(1-Math.cos(2*Math.PI*e/LUNAR_MONTH));return{phaseName:a,illumination:Math.round(100*s),moltStage:n.stage,feedingFactor:l}}
+        function updateLunarDisplay(t){const{phaseName:e,illumination:a,moltStage:n,feedingFactor:l}=getLunarData(t);dateDisplay.textContent=t.toLocaleDateString("es-VE",{dateStyle:"full"}),lunarPhaseName.textContent=e,lunarIllumination.textContent=`Iluminación: ${a}%`,lunarMoltStage.textContent=n,lunarFeedingPercentage.textContent=`${(100*l).toFixed(0)}%`}
+        function updateTempConsultDisplay(){const t=parseFloat(tempSelectConsult.value),e=calculateTempFactor(t),a=(100*e).toFixed(0);tempResultConsult.innerHTML=`<p class="result-value">${a}%</p><p class="sub-result">Aprovechamiento</p>`}
+        function calculateRation(t,e,a,n,l){const s=t<7.5?tgcModelParams.stanza1:tgcModelParams.stanza2,o=Math.pow(Math.pow(t,s.b_minus_1)+s.cn/100*e,1/s.b_minus_1),i=o-t,d=n*l;return{feedAmountKg:i*a*d/1e3,weightGain:i,weightTomorrow:o}}
+        function runPredictionModel(){const t=inputPondId.value||"N/A",e=parseFloat(inputShrimpCount.value),a=parseFloat(inputAvgWeight.value),n=parseFloat(inputFCA.value),l=parseFloat(inputTempModel.value);if(isNaN(e)||isNaN(a)||isNaN(n)||e<=0||a<=0||n<=0)return void alert("Por favor, complete todos los campos con valores numéricos positivos.");const{feedingFactor:s}=getLunarData(new Date),o=calculateRation(a,29,n,e,1),i=calculateRation(a,29,n,e,s),d=calculateRation(a,l,n,e,1),r=calculateRation(a,l,n,e,s);resultTitle.textContent=`Resultados para la Piscina: ${t}`,resShrimpTotal.textContent=e.toLocaleString("es"),resShrimpEating.textContent=Math.round(e*s).toLocaleString("es"),resWeightCurrent.textContent=`${a.toFixed(2)} g`,resWeightTomorrow.textContent=`${r.weightTomorrow.toFixed(2)} g`,resWeightGained.textContent=`${r.weightGain.toFixed(2)} g`,resTotalBiomass.textContent=`${(e*a/1e3).toFixed(2)} kg`,resEatingBiomass.textContent=`${(e*s*a/1e3).toFixed(2)} kg`,resOptimalFeed.textContent=`${o.feedAmountKg.toFixed(2)} kg`,resLunarFeed.textContent=`${i.feedAmountKg.toFixed(2)} kg`,resTempFeed.textContent=`${d.feedAmountKg.toFixed(2)} kg`,resFinalFeed.textContent=`${r.feedAmountKg.toFixed(2)} kg`,scheduleTableBody.innerHTML="",scheduleData.forEach(t=>{const e=r.feedAmountKg*t.percent;scheduleTableBody.innerHTML+=`<tr><td>${t.time}</td><td>${(100*t.percent).toFixed(0)}%</td><td>${e.toFixed(2)} kg</td></tr>`}),modelResultsContainer.style.display="block"}
+        function initializeAppLogic(){for(let t=20;t<=35;t++){const e=document.createElement("option");e.value=t,e.textContent=`${t}°C`;const a=document.createElement("option");a.value=t,a.textContent=`${t}°C`,inputTempModel.appendChild(e),tempSelectConsult.appendChild(a)}prevDayBtn.addEventListener("click",()=>{currentDate.setDate(currentDate.getDate()-1),updateLunarDisplay(currentDate)}),nextDayBtn.addEventListener("click",()=>{currentDate.setDate(currentDate.getDate()+1),updateLunarDisplay(currentDate)}),tempSelectConsult.addEventListener("change",updateTempConsultDisplay),runModelBtn.addEventListener("click",runPredictionModel),updateLunarDisplay(currentDate),updateTempConsultDisplay()}
+        
+        // Se llama a la inicialización de la lógica de la app desde el script de autenticación
+        // una vez que el usuario ha iniciado sesión.
+        window.initializeAppLogic = initializeAppLogic;
+    });
+    </script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD6MdVAEQRdMdjTFdE2TkBvfrxUe8jRfys",
+            authDomain: "calcular--el-alimento.firebaseapp.com",
+            projectId: "calcular--el-alimento",
+            storageBucket: "calcular--el-alimento.firebasestorage.app",
+            messagingSenderId: "784511155900",
+            appId: "1:784511155900:web:750ef5d044fd53195c9ab9"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Contenedores principales
+        const authContainer = document.getElementById('auth-container');
+        const appContainer = document.getElementById('app-container');
+
+        // Vistas de autenticación
+        const loginView = document.getElementById('login-view');
+        const registerView = document.getElementById('register-view');
+        const resetView = document.getElementById('reset-view');
+
+        // Formularios
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const resetForm = document.getElementById('reset-form');
+        
+        // Botones y links de navegación entre vistas de auth
+        document.getElementById('goto-register').addEventListener('click', () => {
+            loginView.style.display = 'none';
+            registerView.style.display = 'block';
+        });
+
+        document.getElementById('goto-reset').addEventListener('click', () => {
+            loginView.style.display = 'none';
+            resetView.style.display = 'block';
+        });
+
+        document.getElementById('goto-login-from-register').addEventListener('click', () => {
+            registerView.style.display = 'none';
+            loginView.style.display = 'block';
+        });
+
+        document.getElementById('goto-login-from-reset').addEventListener('click', () => {
+            resetView.style.display = 'none';
+            loginView.style.display = 'block';
+        });
+        
+        // Botón de cerrar sesión
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            auth.signOut();
+        });
+
+        // Lógica para mostrar/ocultar contraseña
+        document.querySelectorAll('.password-toggle').forEach(button => {
+            button.addEventListener('click', () => {
+                const targetInput = document.getElementById(button.dataset.target);
+                if (targetInput.type === 'password') {
+                    targetInput.type = 'text';
+                    button.textContent = '🙈';
+                } else {
+                    targetInput.type = 'password';
+                    button.textContent = '👁️';
+                }
+            });
+        });
+
+        // --- MANEJADORES DE EVENTOS DE FORMULARIOS ---
+
+        // Login
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            auth.signInWithEmailAndPassword(email, password)
+                .catch(error => {
+                    alert(`Error al iniciar sesión: ${error.message}`);
+                });
+        });
+
+        // Register
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    // Enviar email de verificación
+                    userCredential.user.sendEmailVerification()
+                        .then(() => {
+                            alert('¡Registro exitoso! Se ha enviado un enlace de verificación a tu correo. Por favor, verifica tu cuenta antes de iniciar sesión.');
+                            auth.signOut(); // Desloguear para forzar la verificación
+                            registerView.style.display = 'none';
+                            loginView.style.display = 'block';
+                        });
+                })
+                .catch(error => {
+                    alert(`Error en el registro: ${error.message}`);
+                });
+        });
+
+        // Password Reset
+        resetForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('reset-email').value;
+            auth.sendPasswordResetEmail(email)
+                .then(() => {
+                    alert('Se ha enviado un enlace para restablecer la contraseña a tu correo.');
+                    resetView.style.display = 'none';
+                    loginView.style.display = 'block';
+                })
+                .catch(error => {
+                    alert(`Error al enviar el correo: ${error.message}`);
+                });
+        });
+
+
+        // --- OBSERVADOR DEL ESTADO DE AUTENTICACIÓN ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // El usuario ha iniciado sesión
+                if (user.emailVerified) {
+                    // Si el email está verificado, muestra la app
+                    authContainer.style.display = 'none';
+                    appContainer.style.display = 'block';
+                    document.body.style.backgroundColor = 'var(--bg-color)'; // Fondo oscuro para la app
+                    
+                    // Inicializar la lógica de la app principal solo una vez
+                    if (!window.appInitialized) {
+                        window.initializeAppLogic();
+                        window.appInitialized = true;
+                    }
+                } else {
+                    // Si el email no está verificado, notificar y desloguear
+                    alert('Por favor, verifica tu correo electrónico para poder acceder. Revisa tu bandeja de entrada.');
+                    auth.signOut();
+                }
+            } else {
+                // El usuario ha cerrado sesión o nunca ha iniciado sesión
+                authContainer.style.display = 'block';
+                appContainer.style.display = 'none';
+                document.body.style.backgroundColor = 'var(--auth-bg-color)'; // Fondo claro para el login
+            }
+        });
+    </script>
+</body>
+</html>
