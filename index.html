@@ -270,7 +270,13 @@
                     <div class="info-box"><ul class="result-list"><li><span class="label">Peso Actual</span><span id="res-weight-current" class="value">-- g</span></li><li><span class="label">Peso Mañana (Estimado)</span><span id="res-weight-tomorrow" class="value">-- g</span></li><li><span class="label">Ganancia de Peso</span><span id="res-weight-gained" class="value">-- g</span></li></ul></div>
                     <div class="info-box"><ul class="result-list"><li><span class="label">Biomasa Total</span><span id="res-total-biomass" class="value">-- kg</span></li><li><span class="label">Biomasa (Camarones Comiendo)</span><span id="res-eating-biomass" class="value">-- kg</span></li></ul></div>
                     <h3>Análisis de Escenarios de Alimentación</h3>
-                    <div class="info-box"><ul class="result-list"><li><span class="label">Ración Óptima (100% Lunar, 29°C)</span><span id="res-optimal-feed" class="value">-- kg</span></li><li><span class="label">Ración con Factor Lunar (a 29°C)</span><span id="res-lunar-feed" class="value">-- kg</span></li><li><span class="label">Ración con Temp. Real (100% Lunar)</span><span id="res-temp-feed" class="value">-- kg</span></li><hr><li><span class="label">Ración Final (Lunar y Temp. Real)</span><span id="res-final-feed" class="final-value">-- kg</span></li></ul></div>
+                    <div class="info-box"><ul class="result-list">
+                        <li><span class="label">Ración (100% Lunar, 29°C)</span><span id="res-calc1" class="value">-- kg</span></li>
+                        <li><span class="label">Ración (Lunar Real, 29°C)</span><span id="res-calc2" class="value">-- kg</span></li>
+                        <li><span class="label">Ración (100% Lunar, Temp. Real)</span><span id="res-calc3" class="value">-- kg</span></li>
+                        <hr>
+                        <li><span class="label">Ración Final (Lunar y Temp. Real)</span><span id="res-calc4" class="final-value">-- kg</span></li>
+                    </ul></div>
                     <h3>Horario de Raciones (Ración Final)</h3>
                     <div class="info-box"><table class="schedule-table"><thead><tr><th>Hora</th><th>Porcentaje</th><th>Kilos</th></tr></thead><tbody id="schedule-table-body"></tbody></table></div>
                     <div class="author-info" style="font-size:1em; margin-top:20px;">App por: Jaime Ulises Paz Lopez<br><a href="https://wa.me/584121043327" target="_blank">Contactar por WhatsApp</a></div>
@@ -304,20 +310,116 @@
         panelLunar.innerHTML=`<h1 id="lunar-phase-name">Fase Lunar</h1><p id="lunar-illumination"></p><div class="info-box"><h3>Camarones Comiendo (Estimado)</h3><p id="lunar-feeding-percentage" class="result-value">--%</p><p id="lunar-molt-stage" class="sub-result">Estadio de Muda</p></div><div class="nav-controls"><button id="prev-day" class="nav-button">&lt; Día Anterior</button><button id="next-day" class="nav-button">Día Siguiente &gt;</button></div>`;
         panelTemp.innerHTML=`<div class="info-box"><h3>Ajuste de Alimentación</h3><select id="temp-select-consult"></select><p id="temp-result-consult" style="margin-top:15px; min-height:45px;"></p></div>`;
 
-        const lunarPhaseName=document.getElementById("lunar-phase-name"),lunarIllumination=document.getElementById("lunar-illumination"),lunarFeedingPercentage=document.getElementById("lunar-feeding-percentage"),lunarMoltStage=document.getElementById("lunar-molt-stage"),prevDayBtn=document.getElementById("prev-day"),nextDayBtn=document.getElementById("next-day"),tempSelectConsult=document.getElementById("temp-select-consult"),tempResultConsult=document.getElementById("temp-result-consult"),inputPondId=document.getElementById("input-pond-id"),inputShrimpCount=document.getElementById("input-shrimp-count"),inputAvgWeight=document.getElementById("input-avg-weight"),inputFCA=document.getElementById("input-fca"),inputTempModel=document.getElementById("input-temp-model"),runModelBtn=document.getElementById("run-model-btn"),modelResultsContainer=document.getElementById("model-results-container"),resultTitle=document.getElementById("result-title"),resTotalBiomass=document.getElementById("res-total-biomass"),resEatingBiomass=document.getElementById("res-eating-biomass"),resWeightGain=document.getElementById("res-weight-gain"),resOptimalFeed=document.getElementById("res-optimal-feed"),resLunarFeed=document.getElementById("res-lunar-feed"),resTempFeed=document.getElementById("res-temp-feed"),resFinalFeed=document.getElementById("res-final-feed"),scheduleTableBody=document.getElementById("schedule-table-body"),resShrimpTotal=document.getElementById("res-shrimp-total"),resShrimpEating=document.getElementById("res-shrimp-eating"),resWeightCurrent=document.getElementById("res-weight-current"),resWeightTomorrow=document.getElementById("res-weight-tomorrow"),resWeightGained=document.getElementById("res-weight-gained");
+        // Referencias a elementos del DOM
+        const lunarPhaseName=document.getElementById("lunar-phase-name"),lunarIllumination=document.getElementById("lunar-illumination"),lunarFeedingPercentage=document.getElementById("lunar-feeding-percentage"),lunarMoltStage=document.getElementById("lunar-molt-stage"),prevDayBtn=document.getElementById("prev-day"),nextDayBtn=document.getElementById("next-day"),tempSelectConsult=document.getElementById("temp-select-consult"),tempResultConsult=document.getElementById("temp-result-consult"),inputPondId=document.getElementById("input-pond-id"),inputShrimpCount=document.getElementById("input-shrimp-count"),inputAvgWeight=document.getElementById("input-avg-weight"),inputFCA=document.getElementById("input-fca"),inputTempModel=document.getElementById("input-temp-model"),runModelBtn=document.getElementById("run-model-btn"),modelResultsContainer=document.getElementById("model-results-container"),resultTitle=document.getElementById("result-title"),resTotalBiomass=document.getElementById("res-total-biomass"),resEatingBiomass=document.getElementById("res-eating-biomass"),resWeightGain=document.getElementById("res-weight-gain"),resShrimpTotal=document.getElementById("res-shrimp-total"),resShrimpEating=document.getElementById("res-shrimp-eating"),resWeightCurrent=document.getElementById("res-weight-current"),resWeightTomorrow=document.getElementById("res-weight-tomorrow"),resWeightGained=document.getElementById("res-weight-gained"),scheduleTableBody=document.getElementById("schedule-table-body");
+        
+        // Referencias a los nuevos elementos de resultado
+        const resCalc1 = document.getElementById("res-calc1");
+        const resCalc2 = document.getElementById("res-calc2");
+        const resCalc3 = document.getElementById("res-calc3");
+        const resCalc4 = document.getElementById("res-calc4");
+
 
         allTabs.forEach(t=>{t.addEventListener("click",e=>{allTabs.forEach(t=>t.classList.remove("active")),allPanels.forEach(p=>p.classList.remove("active")),document.getElementById(e.target.id.replace("tab-","panel-")).classList.add("active"),e.target.classList.add("active")})});
         const getLunarAge=t=>(t.getTime()-EPOCH.getTime())/864e5%LUNAR_MONTH;
-        function calculateTempFactor(t){let e;if(t<=tempData[0].temp)e=tempData[0].factor;else if(t>=tempData[tempData.length-1].temp)e=tempData[tempData.length-1].factor;else{let a=tempData.findLast(e=>e.temp<=t),n=tempData.find(e=>e.temp>=t);const l=n.temp-a.temp;if(0===l)return a.factor;const s=n.factor-a.factor;e=a.factor+(t-a.temp)*s/l}return e}
-        function getLunarData(t){let e=getLunarAge(t),a;a=e<1.85||e>=27.68?"Luna Nueva":e<5.53?"Creciente Iluminante":e<9.22?"Cuarto Creciente":e<12.91?"Gibosa Creciente":e<16.61?"Luna Llena":e<20.3?"Gibosa Menguante":e<23.99?"Cuarto Menguante":"Menguante Iluminante";const n=shrimpData[a];let l=n.isRange?n.feedValue:n.startFeed+(n.endFeed-n.startFeed)*(e-n.startDay)/(n.endDay-n.startDay);const s=.5*(1-Math.cos(2*Math.PI*e/LUNAR_MONTH));return{phaseName:a,illumination:Math.round(100*s),moltStage:n.stage,feedingFactor:l}}
-        function updateLunarDisplay(t){const{phaseName:e,illumination:a,moltStage:n,feedingFactor:l}=getLunarData(t);dateDisplay.textContent=t.toLocaleDateString("es-VE",{dateStyle:"full"}),lunarPhaseName.textContent=e,lunarIllumination.textContent=`Iluminación: ${a}%`,lunarMoltStage.textContent=n,lunarFeedingPercentage.textContent=`${(100*l).toFixed(0)}%`}
-        function updateTempConsultDisplay(){const t=parseFloat(tempSelectConsult.value),e=calculateTempFactor(t),a=(100*e).toFixed(0);tempResultConsult.innerHTML=`<p class="result-value">${a}%</p><p class="sub-result">Aprovechamiento</p>`}
-        function calculateRation(t,e,a,n,l){const s=t<7.5?tgcModelParams.stanza1:tgcModelParams.stanza2,o=Math.pow(Math.pow(t,s.b_minus_1)+s.cn/100*e,1/s.b_minus_1),i=o-t,d=n*l;return{feedAmountKg:i*a*d/1e3,weightGain:i,weightTomorrow:o}}
-        function runPredictionModel(){const t=inputPondId.value||"N/A",e=parseFloat(inputShrimpCount.value),a=parseFloat(inputAvgWeight.value),n=parseFloat(inputFCA.value),l=parseFloat(inputTempModel.value);if(isNaN(e)||isNaN(a)||isNaN(n)||e<=0||a<=0||n<=0)return void alert("Por favor, complete todos los campos con valores numéricos positivos.");const{feedingFactor:s}=getLunarData(new Date),o=calculateRation(a,29,n,e,1),i=calculateRation(a,29,n,e,s),c=calculateTempFactor(l),d=calculateRation(a,l,n,e,s),r=o.feedAmountKg*c,g=o.feedAmountKg*s*c;resultTitle.textContent=`Resultados para la Piscina: ${t}`,resShrimpTotal.textContent=e.toLocaleString("es"),resShrimpEating.textContent=Math.round(e*s).toLocaleString("es"),resWeightCurrent.textContent=`${a.toFixed(2)} g`,resWeightTomorrow.textContent=`${d.weightTomorrow.toFixed(2)} g`,resWeightGained.textContent=`${d.weightGain.toFixed(2)} g`,resTotalBiomass.textContent=`${(e*a/1e3).toFixed(2)} kg`,resEatingBiomass.textContent=`${(e*s*a/1e3).toFixed(2)} kg`,resOptimalFeed.textContent=`${o.feedAmountKg.toFixed(2)} kg`,resLunarFeed.textContent=`${i.feedAmountKg.toFixed(2)} kg`,resTempFeed.textContent=`${r.toFixed(2)} kg`,resFinalFeed.textContent=`${g.toFixed(2)} kg`,scheduleTableBody.innerHTML="",scheduleData.forEach(t=>{const e=g*t.percent;scheduleTableBody.innerHTML+=`<tr><td>${t.time}</td><td>${(100*t.percent).toFixed(0)}%</td><td>${e.toFixed(2)} kg</td></tr>`}),modelResultsContainer.style.display="block"}
-        function initializeAppLogic(){for(let t=20;t<=35;t++){const e=document.createElement("option");e.value=t,e.textContent=`${t}°C`;const a=document.createElement("option");a.value=t,a.textContent=`${t}°C`,inputTempModel.appendChild(e),tempSelectConsult.appendChild(a)}prevDayBtn.addEventListener("click",()=>{currentDate.setDate(currentDate.getDate()-1),updateLunarDisplay(currentDate)}),nextDayBtn.addEventListener("click",()=>{currentDate.setDate(currentDate.getDate()+1),updateLunarDisplay(currentDate)}),tempSelectConsult.addEventListener("change",updateTempConsultDisplay),runModelBtn.addEventListener("click",runPredictionModel),updateLunarDisplay(currentDate),updateTempConsultDisplay()}
         
-        // Se llama a la inicialización de la lógica de la app desde el script de autenticación
-        // una vez que el usuario ha iniciado sesión.
+        function calculateTempFactor(t){let e;if(t<=tempData[0].temp)e=tempData[0].factor;else if(t>=tempData[tempData.length-1].temp)e=tempData[tempData.length-1].factor;else{let a=tempData.findLast(e=>e.temp<=t),n=tempData.find(e=>e.temp>=t);const l=n.temp-a.temp;if(0===l)return a.factor;const s=n.factor-a.factor;e=a.factor+(t-a.temp)*s/l}return e}
+        
+        function getLunarData(t){let e=getLunarAge(t),a;a=e<1.85||e>=27.68?"Luna Nueva":e<5.53?"Creciente Iluminante":e<9.22?"Cuarto Creciente":e<12.91?"Gibosa Creciente":e<16.61?"Luna Llena":e<20.3?"Gibosa Menguante":e<23.99?"Cuarto Menguante":"Menguante Iluminante";const n=shrimpData[a];let l=n.isRange?n.feedValue:n.startFeed+(n.endFeed-n.startFeed)*(e-n.startDay)/(n.endDay-n.startDay);const s=.5*(1-Math.cos(2*Math.PI*e/LUNAR_MONTH));return{phaseName:a,illumination:Math.round(100*s),moltStage:n.stage,feedingFactor:l}}
+        
+        function updateLunarDisplay(t){const{phaseName:e,illumination:a,moltStage:n,feedingFactor:l}=getLunarData(t);dateDisplay.textContent=t.toLocaleDateString("es-VE",{dateStyle:"full"}),lunarPhaseName.textContent=e,lunarIllumination.textContent=`Iluminación: ${a}%`,lunarMoltStage.textContent=n,lunarFeedingPercentage.textContent=`${(100*l).toFixed(0)}%`}
+        
+        function updateTempConsultDisplay(){const t=parseFloat(tempSelectConsult.value),e=calculateTempFactor(t),a=(100*e).toFixed(0);tempResultConsult.innerHTML=`<p class="result-value">${a}%</p><p class="sub-result">Aprovechamiento</p>`}
+        
+        function calculateWeightGain(currentWeight, temp) {
+            const tempFactor = calculateTempFactor(temp);
+            const stanza = currentWeight < 7.5 ? tgcModelParams.stanza1 : tgcModelParams.stanza2;
+            const weightTomorrow = Math.pow(Math.pow(currentWeight, stanza.b_minus_1) + stanza.cn / 100 * tempFactor, 1 / stanza.b_minus_1);
+            return weightTomorrow - currentWeight;
+        }
+
+        function calculateRation(weightGain, fca, shrimpCount, lunarFactor) {
+            const feedAmountGrams = weightGain * fca * shrimpCount * lunarFactor;
+            return feedAmountGrams / 1000; // Convertir a Kg
+        }
+
+        function runPredictionModel(){
+            const pondId = inputPondId.value || "N/A";
+            const shrimpCount = parseFloat(inputShrimpCount.value);
+            const avgWeight = parseFloat(inputAvgWeight.value);
+            const fca = parseFloat(inputFCA.value);
+            const realTemp = parseFloat(inputTempModel.value);
+
+            if(isNaN(shrimpCount) || isNaN(avgWeight) || isNaN(fca) || shrimpCount <= 0 || avgWeight <= 0 || fca <= 0) {
+                return void alert("Por favor, complete todos los campos con valores numéricos positivos.");
+            }
+
+            const { feedingFactor: lunarFactor } = getLunarData(new Date());
+
+            // --- LÓGICA DE CÁLCULO CORREGIDA ---
+            
+            // Calculo 1: Lunar 100%, Temp 29°C
+            const weightGain29 = calculateWeightGain(avgWeight, 29);
+            const rationCalc1 = calculateRation(weightGain29, fca, shrimpCount, 1);
+
+            // Calculo 2: Lunar Real, Temp 29°C
+            const rationCalc2 = calculateRation(weightGain29, fca, shrimpCount, lunarFactor);
+
+            // Calculo 3: Lunar 100%, Temp Real
+            const weightGainRealTemp = calculateWeightGain(avgWeight, realTemp);
+            const rationCalc3 = calculateRation(weightGainRealTemp, fca, shrimpCount, 1);
+            
+            // Calculo 4: Lunar Real, Temp Real
+            const rationCalc4 = calculateRation(weightGainRealTemp, fca, shrimpCount, lunarFactor);
+            const finalWeightGain = weightGainRealTemp; // La ganancia de peso final se basa en la temperatura real
+            const weightTomorrow = avgWeight + finalWeightGain;
+
+            // --- MOSTRAR RESULTADOS ---
+            resultTitle.textContent=`Resultados para la Piscina: ${pondId}`;
+            resShrimpTotal.textContent = shrimpCount.toLocaleString("es");
+            resShrimpEating.textContent = Math.round(shrimpCount * lunarFactor).toLocaleString("es");
+            
+            resWeightCurrent.textContent = `${avgWeight.toFixed(2)} g`;
+            resWeightTomorrow.textContent = `${weightTomorrow.toFixed(2)} g`;
+            resWeightGained.textContent = `${finalWeightGain.toFixed(2)} g`;
+
+            resTotalBiomass.textContent = `${(shrimpCount * avgWeight / 1000).toFixed(2)} kg`;
+            resEatingBiomass.textContent = `${(shrimpCount * lunarFactor * avgWeight / 1000).toFixed(2)} kg`;
+
+            resCalc1.textContent = `${rationCalc1.toFixed(2)} kg`;
+            resCalc2.textContent = `${rationCalc2.toFixed(2)} kg`;
+            resCalc3.textContent = `${rationCalc3.toFixed(2)} kg`;
+            resCalc4.textContent = `${rationCalc4.toFixed(2)} kg`;
+
+            scheduleTableBody.innerHTML = "";
+            const finalRation = rationCalc4;
+            scheduleData.forEach(item => {
+                const kilos = finalRation * item.percent;
+                scheduleTableBody.innerHTML += `<tr><td>${item.time}</td><td>${(100 * item.percent).toFixed(0)}%</td><td>${kilos.toFixed(2)} kg</td></tr>`;
+            });
+            
+            modelResultsContainer.style.display = "block";
+        }
+
+        function initializeAppLogic(){
+            for(let t=20;t<=35;t++){
+                const e=document.createElement("option");
+                e.value=t;
+                e.textContent=`${t}°C`;
+                const a=document.createElement("option");
+                a.value=t;
+                a.textContent=`${t}°C`;
+                inputTempModel.appendChild(e);
+                tempSelectConsult.appendChild(a);
+            }
+            prevDayBtn.addEventListener("click",()=>{currentDate.setDate(currentDate.getDate()-1),updateLunarDisplay(currentDate)});
+            nextDayBtn.addEventListener("click",()=>{currentDate.setDate(currentDate.getDate()+1),updateLunarDisplay(currentDate)});
+            tempSelectConsult.addEventListener("change",updateTempConsultDisplay);
+            runModelBtn.addEventListener("click",runPredictionModel);
+            updateLunarDisplay(currentDate);
+            updateTempConsultDisplay();
+        }
+        
         window.initializeAppLogic = initializeAppLogic;
     });
     </script>
@@ -332,25 +434,18 @@
             appId: "1:784511155900:web:750ef5d044fd53195c9ab9"
         };
 
-        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        // Contenedores principales
         const authContainer = document.getElementById('auth-container');
         const appContainer = document.getElementById('app-container');
-
-        // Vistas de autenticación
         const loginView = document.getElementById('login-view');
         const registerView = document.getElementById('register-view');
         const resetView = document.getElementById('reset-view');
-
-        // Formularios
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         const resetForm = document.getElementById('reset-form');
         
-        // Botones y links de navegación entre vistas de auth
         document.getElementById('goto-register').addEventListener('click', () => {
             loginView.style.display = 'none';
             registerView.style.display = 'block';
@@ -371,12 +466,10 @@
             loginView.style.display = 'block';
         });
         
-        // Botón de cerrar sesión
         document.getElementById('logout-btn').addEventListener('click', () => {
             auth.signOut();
         });
 
-        // Lógica para mostrar/ocultar contraseña
         document.querySelectorAll('.password-toggle').forEach(button => {
             button.addEventListener('click', () => {
                 const targetInput = document.getElementById(button.dataset.target);
@@ -390,9 +483,6 @@
             });
         });
 
-        // --- MANEJADORES DE EVENTOS DE FORMULARIOS ---
-
-        // Login
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -403,18 +493,16 @@
                 });
         });
 
-        // Register
         registerForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
             auth.createUserWithEmailAndPassword(email, password)
                 .then(userCredential => {
-                    // Enviar email de verificación
                     userCredential.user.sendEmailVerification()
                         .then(() => {
                             alert('¡Registro exitoso! Se ha enviado un enlace de verificación a tu correo. Por favor, verifica tu cuenta antes de iniciar sesión.');
-                            auth.signOut(); // Desloguear para forzar la verificación
+                            auth.signOut();
                             registerView.style.display = 'none';
                             loginView.style.display = 'block';
                         });
@@ -424,7 +512,6 @@
                 });
         });
 
-        // Password Reset
         resetForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('reset-email').value;
@@ -439,32 +526,25 @@
                 });
         });
 
-
-        // --- OBSERVADOR DEL ESTADO DE AUTENTICACIÓN ---
         auth.onAuthStateChanged(user => {
             if (user) {
-                // El usuario ha iniciado sesión
                 if (user.emailVerified) {
-                    // Si el email está verificado, muestra la app
                     authContainer.style.display = 'none';
                     appContainer.style.display = 'block';
-                    document.body.style.backgroundColor = 'var(--bg-color)'; // Fondo oscuro para la app
+                    document.body.style.backgroundColor = 'var(--bg-color)';
                     
-                    // Inicializar la lógica de la app principal solo una vez
                     if (!window.appInitialized) {
                         window.initializeAppLogic();
                         window.appInitialized = true;
                     }
                 } else {
-                    // Si el email no está verificado, notificar y desloguear
                     alert('Por favor, verifica tu correo electrónico para poder acceder. Revisa tu bandeja de entrada.');
                     auth.signOut();
                 }
             } else {
-                // El usuario ha cerrado sesión o nunca ha iniciado sesión
                 authContainer.style.display = 'block';
                 appContainer.style.display = 'none';
-                document.body.style.backgroundColor = 'var(--auth-bg-color)'; // Fondo claro para el login
+                document.body.style.backgroundColor = 'var(--auth-bg-color)';
             }
         });
     </script>
