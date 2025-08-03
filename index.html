@@ -334,7 +334,9 @@
         function calculateWeightGain(currentWeight, temp) {
             const tempFactor = calculateTempFactor(temp);
             const stanza = currentWeight < 7.5 ? tgcModelParams.stanza1 : tgcModelParams.stanza2;
-            const weightTomorrow = Math.pow(Math.pow(currentWeight, stanza.b_minus_1) + stanza.cn / 100 * tempFactor, 1 / stanza.b_minus_1);
+            // ### LÍNEA CORREGIDA ###
+            // Se incluye la variable `temp` en el cálculo para que coincida con el modelo científico.
+            const weightTomorrow = Math.pow(Math.pow(currentWeight, stanza.b_minus_1) + stanza.cn / 100 * temp * tempFactor, 1 / stanza.b_minus_1);
             return weightTomorrow - currentWeight;
         }
 
